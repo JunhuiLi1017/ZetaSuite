@@ -1,0 +1,342 @@
+---
+title: "ZetaSuite: A Comprehensive Guide to Multi-dimensional High-throughput Data Analysis"
+author: "Yajing Hao, Shuyang Zhang, Junhui Li, Changwei Shao, Guofeng Zhao, Xiang-Dong Fu"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+keep_html: true
+vignette: >
+  %\VignetteIndexEntry{ZetaSuite}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(warning = FALSE, message = FALSE, fig.width = 8, fig.height = 6) 
+```
+
+# Introduction
+
+## Overview
+
+ZetaSuite is an R package designed for analyzing multi-dimensional high-throughput screening data, particularly two-dimensional RNAi screens and single-cell RNA sequencing data. The package addresses the limitations of simple Z-based statistics when dealing with complex multi-dimensional datasets where experimental noise and off-target effects accumulate.
+
+## Key Features
+
+- **Quality Control Analysis**: Comprehensive evaluation of experimental design and data quality
+- **Z-score Normalization**: Standardization using negative controls as reference
+- **Event Coverage Analysis**: Quantification of regulatory effects across thresholds
+- **Zeta Score Calculation**: Area-under-curve based scoring for regulatory effects
+- **SVM-based Background Correction**: Machine learning approach to filter noise
+- **Screen Strength Analysis**: Optimal threshold selection for hit identification
+- **Single Cell Quality Control**: Cell quality assessment for scRNA-seq data
+
+## Applications
+
+1. **Two-dimensional RNAi screens**: Identify genes critical for cell fitness and proliferation
+2. **Alternative splicing analysis**: Detect splicing regulators and their effects
+3. **Single-cell RNA-seq QC**: Differentiate high-quality cells from damaged ones
+4. **Cancer dependency screens**: Reveal genes with opposite roles in cancer biology
+
+# Installation and Setup
+
+```{r install, eval=FALSE}
+# Install from CRAN
+install.packages("ZetaSuite")
+
+# Load the package
+library(ZetaSuite)
+```
+
+# Example Dataset
+
+The package includes an example dataset from an in-house HTS2 screening experiment. This dataset contains:
+
+- **countMat**: 1,609 genes × 100 alternative splicing events (fold change values)
+- **negGene**: 30 negative control genes (non-specific siRNAs)
+- **posGene**: 20 positive control genes (PTB-targeting siRNAs)
+- **nonExpGene**: 50 non-expressed genes (RPKM < 1 in HeLa cells)
+- **ZseqList**: Pre-calculated Z-score thresholds
+- **SVMcurve**: Pre-calculated SVM decision boundaries
+
+```{r load_data}
+library(ZetaSuite)
+
+# Load example data
+data(countMat)
+data(negGene)
+data(posGene)
+data(nonExpGene)
+data(ZseqList)
+data(SVMcurve)
+
+# Display data dimensions
+cat("Count matrix dimensions:", dim(countMat), "\n")
+cat("Negative controls:", nrow(negGene), "genes\n")
+cat("Positive controls:", nrow(posGene), "genes\n")
+cat("Non-expressed genes:", nrow(nonExpGene), "genes\n")
+```
+
+# Analysis Workflow
+
+## Step 1: Quality Control Analysis
+
+Quality control evaluates the ability of functional readouts to discriminate between negative and positive controls. This step provides diagnostic plots and SSMD (Strictly Standardized Mean Difference) scores.
+
+```{r qc_analysis}
+# Perform quality control analysis
+qc_results <- QC(countMat, negGene, posGene)
+
+# Display QC plots
+cat("QC analysis completed. Generated", length(qc_results), "diagnostic plots.\n")
+```
+
+### QC Plot 1: Score Distribution
+This plot shows the distribution of raw scores across all readouts for positive and negative controls.
+
+```{r qc_plot1, fig.height = 5, fig.width = 8}
+qc_results$score_qc
+```
+
+### QC Plot 2: t-SNE Visualization
+Global evaluation of sample separation based on all readouts.
+
+```{r qc_plot2, fig.height = 5, fig.width = 6}
+qc_results$tSNE_QC
+```
+
+### QC Plot 3: Box Plots
+Side-by-side comparison of score distributions between control groups.
+
+```{r qc_plot3, fig.height = 4, fig.width = 8}
+grid::grid.draw(qc_results$QC_box)
+```
+
+### QC Plot 4: SSMD Distribution
+Distribution of SSMD scores with quality threshold (SSMD ≥ 2).
+
+```{r qc_plot4, fig.height = 5, fig.width = 6}
+qc_results$QC_SSMD
+```
+
+## Step 2: Z-score Normalization
+
+Z-score normalization standardizes the data using negative controls as reference, making readouts comparable across different conditions.
+
+```{r zscore_analysis}
+# Calculate Z-scores
+zscore_matrix <- Zscore(countMat, negGene)
+
+# Display first few rows and columns
+cat("Z-score matrix dimensions:", dim(zscore_matrix), "\n")
+cat("First 5 rows and columns:\n")
+print(zscore_matrix[1:5, 1:5])
+```
+
+## Step 3: Event Coverage Analysis
+
+Event coverage quantifies the proportion of readouts that exceed different Z-score thresholds for each gene, creating the foundation for zeta score calculations.
+
+```{r event_coverage}
+# Calculate event coverage
+ec_results <- EventCoverage(zscore_matrix, negGene, posGene, binNum = 100, combine = TRUE)
+
+# Display event coverage plots
+cat("Event coverage analysis completed.\n")
+```
+
+### Event Coverage Plots
+
+```{r ec_plots, fig.height = 5, fig.width = 10}
+# Decrease direction (exon skipping)
+ec_results[[2]]$EC_jitter_D
+```
+
+```{r ec_plots2, fig.height = 5, fig.width = 10}
+# Increase direction (exon inclusion)
+ec_results[[2]]$EC_jitter_I
+```
+
+## Step 4: Zeta Score Calculation
+
+Zeta scores represent the area under the event coverage curve, quantifying the cumulative regulatory effect of each gene across all Z-score thresholds.
+
+```{r zeta_calculation}
+# Calculate zeta scores without SVM correction
+zeta_scores <- Zeta(zscore_matrix, ZseqList, SVM = FALSE)
+
+# Display summary statistics
+cat("Zeta score summary:\n")
+cat("Number of genes:", nrow(zeta_scores), "\n")
+cat("Zeta_D range:", range(zeta_scores$Zeta_D), "\n")
+cat("Zeta_I range:", range(zeta_scores$Zeta_I), "\n")
+
+# Show top hits
+cat("\nTop 10 genes by Zeta_D (decrease direction):\n")
+top_decrease <- head(zeta_scores[order(zeta_scores$Zeta_D, decreasing = TRUE), ], 10)
+print(top_decrease)
+```
+
+## Step 5: SVM Background Correction (Optional)
+
+SVM analysis creates decision boundaries to separate positive and negative controls, enabling background correction in zeta score calculations.
+
+```{r svm_analysis, eval=FALSE}
+# Run SVM analysis (can be computationally intensive)
+svm_results <- SVM(ec_results)
+
+# Calculate zeta scores with SVM correction
+zeta_scores_svm <- Zeta(zscore_matrix, ZseqList, SVMcurve = svm_results, SVM = TRUE)
+```
+
+## Step 6: Screen Strength Analysis
+
+Screen Strength analysis determines optimal cutoff thresholds by balancing sensitivity and specificity, using the ratio of apparent FDR to baseline FDR.
+
+```{r screen_strength}
+# Calculate FDR cutoffs and Screen Strength
+fdr_results <- FDRcutoff(zeta_scores, negGene, posGene, nonExpGene, combine = TRUE)
+
+# Display Screen Strength plots
+cat("Screen Strength analysis completed.\n")
+```
+
+### Zeta Score Distribution by Gene Type
+
+```{r ss_plot1, fig.height = 5, fig.width = 8}
+fdr_results[[2]]$Zeta_type
+```
+
+### Screen Strength Curves
+
+```{r ss_plot2, fig.height = 5, fig.width = 6}
+fdr_results[[2]]$SS_cutOff
+```
+
+### FDR Cutoff Results
+
+```{r fdr_table}
+# Display FDR cutoff results
+fdr_table <- fdr_results[[1]]
+cat("FDR cutoff results summary:\n")
+cat("Number of thresholds tested:", nrow(fdr_table), "\n")
+cat("Screen Strength range:", range(fdr_table$SS), "\n")
+
+# Show optimal thresholds (SS > 0.8)
+optimal_thresholds <- fdr_table[fdr_table$SS > 0.8, ]
+cat("\nOptimal thresholds (SS > 0.8):\n")
+print(head(optimal_thresholds, 10))
+```
+
+## Step 7: Hit Selection
+
+Based on the Screen Strength analysis, select appropriate thresholds for hit identification.
+
+```{r hit_selection}
+# Example: Select threshold with SS > 0.8 and reasonable number of hits
+selected_threshold <- fdr_table[fdr_table$SS > 0.8 & fdr_table$TotalHits > 50, ]
+if(nrow(selected_threshold) > 0) {
+  best_threshold <- selected_threshold[which.max(selected_threshold$SS), ]
+  cat("Recommended threshold:", best_threshold$Cut_Off, "\n")
+  cat("Screen Strength:", best_threshold$SS, "\n")
+  cat("Total hits:", best_threshold$TotalHits, "\n")
+  
+  # Identify hits
+  combined_zeta <- zeta_scores$Zeta_D + zeta_scores$Zeta_I
+  hits <- names(combined_zeta[combined_zeta >= best_threshold$Cut_Off])
+  cat("Number of hits identified:", length(hits), "\n")
+}
+```
+
+# Single Cell RNA-seq Quality Control
+
+ZetaSuite also provides functionality for single-cell RNA-seq quality control, helping to differentiate high-quality cells from damaged ones.
+
+```{r single_cell_example, eval=FALSE}
+# Example single cell analysis (requires single cell count matrix)
+# single_cell_results <- ZetaSuitSC(count_matrix_sc, binNum = 10, filter = TRUE)
+```
+
+# Advanced Usage
+
+## Custom Parameter Settings
+
+```{r custom_params, eval=FALSE}
+# Custom event coverage analysis
+ec_custom <- EventCoverage(zscore_matrix, negGene, posGene, 
+                          binNum = 200,    # More bins for finer resolution
+                          combine = FALSE) # Separate decrease/increase directions
+
+# Custom zeta score calculation with SVM
+zeta_custom <- Zeta(zscore_matrix, ZseqList, 
+                   SVMcurve = svm_results, 
+                   SVM = TRUE)  # Use SVM correction
+
+# Custom FDR analysis
+fdr_custom <- FDRcutoff(zeta_scores, negGene, posGene, nonExpGene, 
+                       combine = FALSE)  # Analyze directions separately
+```
+
+## Batch Processing
+
+```{r batch_processing, eval=FALSE}
+# Example: Process multiple datasets
+datasets <- list(dataset1 = list(countMat = countMat1, negGene = negGene1),
+                dataset2 = list(countMat = countMat2, negGene = negGene2))
+
+results <- lapply(datasets, function(ds) {
+  zscore <- Zscore(ds$countMat, ds$negGene)
+  ec <- EventCoverage(zscore, ds$negGene, ds$posGene, binNum = 100)
+  zeta <- Zeta(zscore, ZseqList, SVM = FALSE)
+  return(list(zscore = zscore, ec = ec, zeta = zeta))
+})
+```
+
+# Interpretation Guidelines
+
+## Quality Control Interpretation
+
+- **SSMD ≥ 2**: High-quality readouts with good separation between controls
+- **t-SNE separation**: Clear clustering indicates good experimental design
+- **Box plot overlap**: Minimal overlap suggests effective control design
+
+## Zeta Score Interpretation
+
+- **Higher Zeta_D**: Genes promoting exon skipping
+- **Higher Zeta_I**: Genes promoting exon inclusion
+- **Combined score**: Overall regulatory effect strength
+
+## Screen Strength Interpretation
+
+- **SS = 1**: Perfect separation (no false positives)
+- **SS > 0.8**: Excellent separation
+- **SS > 0.6**: Good separation
+- **Optimal threshold**: Balance between sensitivity and specificity
+
+# Troubleshooting
+
+## Common Issues
+
+1. **Insufficient controls**: Ensure adequate number of positive/negative controls
+2. **Data quality**: Check for missing values and extreme outliers
+3. **Memory issues**: Reduce bin number for large datasets
+4. **SVM convergence**: Adjust SVM parameters or use pre-calculated curves
+
+## Performance Optimization
+
+- Use `combine = TRUE` for faster event coverage analysis
+- Reduce `binNum` for large datasets
+- Consider using pre-calculated SVM curves for repeated analyses
+
+# References
+
+## Software Citation
+Hao, Y., Shao, C., Zhao, G., Fu, X.D. (2021). ZetaSuite: A Computational Method for Analyzing Multi-dimensional High-throughput Data, Reveals Genes with Opposite Roles in Cancer Dependency. *Forthcoming*
+
+## Dataset Citation
+Shao, C., Hao, Y., Qiu, J., Zhou, B., Li, H., Zhou, Y., Meng, F., Jiang, L., Gou, L.T., Xu, J., Li, Y., Wang, H., Yeo, G.W., Wang, D., Ji, X., Glass, C.K., Aza-Blanc, P., Fu, X.D. (2021). HTS2 Screen for Global Splicing Regulators Reveals a Key Role of the Pol II Subunit RPB9 in Coupling between Transcription and Pre-mRNA Splicing. *Cell. Forthcoming*
+
+# Session Information
+
+```{r sessionInfo}
+sessionInfo()
+``` 

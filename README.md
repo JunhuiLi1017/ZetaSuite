@@ -58,6 +58,12 @@ For detailed documentation and examples, see the package vignette:
 vignette("ZetaSuite")
 ```
 
+## Bug Reports
+
+If you encounter any bugs or have feature requests, please report them on our GitHub issues page:
+
+[Report a Bug](https://github.com/JunhuiLi1017/ZetaSuite/issues)
+
 ## Citation
 
 If you use ZetaSuite in your research, please cite:

@@ -23,8 +23,8 @@ ui <- dashboardPage(
       menuItem("SVM Analysis", tabName = "svm", icon = icon("brain")),
       menuItem("FDR Cutoff", tabName = "fdr", icon = icon("cut")),
       menuItem("Single Cell QC", tabName = "singlecell", icon = icon("mobile")),
-      menuItem("Original ZetaSuite", tabName = "original", icon = icon("code")),
-      menuItem("Results", tabName = "results", icon = icon("download"))
+      menuItem("Results", tabName = "results", icon = icon("download")),
+      menuItem("Help & Support", tabName = "help", icon = icon("question-circle"))
     )
   ),
   
@@ -37,13 +37,7 @@ ui <- dashboardPage(
         fluidRow(
           box(title = "Welcome to ZetaSuite", width = 12,
             h3("Multi-dimensional High-throughput Data Analysis"),
-            p("ZetaSuite is a computational method designed for analyzing multi-dimensional high-throughput screening data, particularly two-dimensional RNAi screens and single-cell RNA sequencing data."),
-            br(),
-            h4("Two Versions Available:"),
-            tags$ul(
-              tags$li(tags$strong("R Package Version:"), " Interactive analysis through R functions and this Shiny interface"),
-              tags$li(tags$strong("Original Perl-based Version:"), " Complete command-line workflow with additional features")
-            ),
+            p("ZetaSuite is an R package designed for analyzing multi-dimensional high-throughput screening data, particularly two-dimensional RNAi screens and single-cell RNA sequencing data."),
             br(),
             h4("Key Features:"),
             tags$ul(
@@ -60,7 +54,6 @@ ui <- dashboardPage(
             p("1. Use the 'Example Data' tab to explore the built-in dataset"),
             p("2. Or upload your own data in the 'Data Upload' tab"),
             p("3. Follow the analysis workflow through the tabs"),
-            p("4. Check the 'Original ZetaSuite' tab for additional workflow options"),
             br(),
             p("For more information, see the package vignette and documentation.")
           )
@@ -286,54 +279,6 @@ ui <- dashboardPage(
         )
       ),
       
-      # Original ZetaSuite Tab
-      tabItem(tabName = "original",
-        fluidRow(
-          box(title = "Original ZetaSuite Workflow", width = 12,
-            h4("Perl-based ZetaSuite"),
-            p("The original ZetaSuite is implemented in Perl, Shell, and R, providing a comprehensive command-line workflow."),
-            br(),
-            h4("Additional Features in Original ZetaSuite:"),
-            tags$ul(
-              tags$li("Off-targeting Gene Removal"),
-              tags$li("Functional Interpretation"),
-              tags$li("Network Construction"),
-              tags$li("Advanced Single Cell Analysis")
-            ),
-            br(),
-            p("Repository: ", tags$a(href = "https://github.com/YajingHao/ZetaSuite", "https://github.com/YajingHao/ZetaSuite")),
-            br(),
-            actionButton("exportForOriginal", "Export Results for Original ZetaSuite", class = "btn-warning")
-          )
-        ),
-        fluidRow(
-          box(title = "Original ZetaSuite Commands", width = 12,
-            h4("Installation:"),
-            verbatimTextOutput("originalInstall"),
-            br(),
-            h4("Example Workflow:"),
-            verbatimTextOutput("originalWorkflow"),
-            br(),
-            h4("Single Cell Analysis:"),
-            verbatimTextOutput("originalSingleCell")
-          )
-        ),
-        fluidRow(
-          box(title = "Integration Options", width = 12,
-            h4("Export Current Results:"),
-            p("Use the export button above to generate files compatible with the original ZetaSuite workflow."),
-            br(),
-            h4("Workflow Integration:"),
-            tags$ol(
-              tags$li("Run analysis in this Shiny app"),
-              tags$li("Export results using the button above"),
-              tags$li("Continue with original ZetaSuite for off-targeting removal"),
-              tags$li("Perform functional interpretation and network construction")
-            )
-          )
-        )
-      ),
-      
       # Results Tab
       tabItem(tabName = "results",
         fluidRow(
@@ -343,13 +288,54 @@ ui <- dashboardPage(
             downloadButton("downloadFDR", "Download FDR Results"),
             downloadButton("downloadHits", "Download Selected Hits"),
             downloadButton("downloadSingleCell", "Download Single Cell Results"),
-            downloadButton("downloadReport", "Download Analysis Report"),
-            downloadButton("downloadOriginalFormat", "Download for Original ZetaSuite")
+            downloadButton("downloadReport", "Download Analysis Report")
           )
         ),
         fluidRow(
           box(title = "Analysis Summary", width = 12,
             verbatimTextOutput("analysisSummary")
+          )
+        )
+      ),
+      
+      # Help & Support Tab
+      tabItem(tabName = "help",
+        fluidRow(
+          box(title = "Documentation & Support", width = 12,
+            h4("Package Documentation"),
+            p("For detailed documentation and examples, see the package vignette:"),
+            code("vignette(\"ZetaSuite\")"),
+            br(), br(),
+            h4("Bug Reports & Feature Requests"),
+            p("If you encounter any bugs or have feature requests, please report them on our GitHub issues page:"),
+            tags$a(href = "https://github.com/JunhuiLi1017/ZetaSuite/issues", 
+                   "Report a Bug or Request Feature", 
+                   target = "_blank", 
+                   class = "btn btn-warning"),
+            br(), br(),
+            h4("Citation"),
+            p("If you use ZetaSuite in your research, please cite:"),
+            p("Hao, Y., Shao, C., Zhao, G., Fu, X.D. (2021). ZetaSuite: A Computational Method for Analyzing Multi-dimensional High-throughput Data, Reveals Genes with Opposite Roles in Cancer Dependency. Forthcoming"),
+            br(),
+            h4("Contact"),
+            p("For questions about the package, contact the maintainer:"),
+            p("Junhui Li <ljh.biostat@gmail.com>")
+          )
+        ),
+        fluidRow(
+          box(title = "Troubleshooting", width = 12,
+            h4("Common Issues"),
+            tags$ul(
+              tags$li("Make sure all required packages are installed"),
+              tags$li("Check that CSV files have correct column headers and data types"),
+              tags$li("For large datasets, consider reducing the number of bins"),
+              tags$li("Ensure you have sufficient positive and negative control samples")
+            ),
+            br(),
+            h4("Data Format Requirements"),
+            p("Count Matrix: Rows = Genes/siRNAs, Columns = Readouts/conditions"),
+            p("Control Files: First column should contain gene/siRNA identifiers"),
+            p("All files should be in CSV format with proper headers")
           )
         )
       )
@@ -431,31 +417,6 @@ server <- function(input, output, session) {
     })
   })
   
-  # Export for original ZetaSuite
-  observeEvent(input$exportForOriginal, {
-    req(values$zetaData)
-    
-    tryCatch({
-      # Create directory for export
-      export_dir <- "zetaSuite_export"
-      if (!dir.exists(export_dir)) {
-        dir.create(export_dir)
-      }
-      
-      # Export files in original ZetaSuite format
-      write.csv(values$zscoreVal, file.path(export_dir, "Zscore_matrix.csv"))
-      write.csv(values$zetaData, file.path(export_dir, "Zeta_scores.csv"))
-      
-      if (!is.null(values$selectedHits)) {
-        write.csv(values$selectedHits, file.path(export_dir, "Selected_hits.csv"), row.names = FALSE)
-      }
-      
-      showNotification(paste("Results exported to", export_dir, "directory!"), type = "success")
-    }, error = function(e) {
-      showNotification(paste("Error exporting results:", e$message), type = "error")
-    })
-  })
-  
   # Example data summary
   output$exampleDataSummary <- renderPrint({
     if (!is.null(values$countMat)) {
@@ -470,48 +431,6 @@ server <- function(input, output, session) {
     } else {
       cat("Click 'Load Example Data' to load the built-in dataset.\n")
     }
-  })
-  
-  # Original ZetaSuite installation commands
-  output$originalInstall <- renderPrint({
-    cat("# Clone the repository\n")
-    cat("git clone https://github.com/YajingHao/ZetaSuite.git\n\n")
-    cat("# Set up dependencies\n")
-    cat("cd ZetaSuite/bin\n")
-    cat("chmod 777 ./*\n")
-    cat("cd ..\n")
-    cat("chmod 777 ZetaSuite.pl\n\n")
-    cat("# Download annotation data\n")
-    cat("wget -c http://fugenome.ucsd.edu/HumanGenome/hg38_chr.fa\n")
-    cat("mv ./hg38_chr.fa ./dataSets\n")
-  })
-  
-  # Original ZetaSuite workflow commands
-  output$originalWorkflow <- renderPrint({
-    cat("# Run main ZetaSuite analysis\n")
-    cat("perl ZetaSuite.pl -id ./ -od ./output_example -in Example.matrix -op Example\n\n")
-    cat("# Remove off-targeting genes\n")
-    cat("sh bin/OffTargeting.sh -b output_example/Hits -i output_example/Hits/Example_hits.txt \\\n")
-    cat("   -o OffT -m output_example/Zscore/Example_Zscore.matrix \\\n")
-    cat("   -t example/Example_siRNA.fa -l example/gencode.v28.annotation.bed \\\n")
-    cat("   -g example/Example_GlodenSet.txt -c example/geneID_transcriptID_geneName_V28\n\n")
-    cat("# Functional interpretation\n")
-    cat("sh bin/Function.sh -a output_example/Hits -b output_example/Hits \\\n")
-    cat("   -i Example_hits.txt -o Example_Functions\n\n")
-    cat("# Network construction\n")
-    cat("sh bin/Network.sh -b output_example/Hits -h output_example/Hits/Example_hits.txt \\\n")
-    cat("   -i output_example/Zscore/Example_Zscore.matrix -o Network -c 0.4\n")
-  })
-  
-  # Original ZetaSuite single cell commands
-  output$originalSingleCell <- renderPrint({
-    cat("# Remove mitochondrial genes\n")
-    cat("cut -f 1-27124,27138- Placenta_input.matrix > Placenta_rmMT.matrix\n\n")
-    cat("# Run single cell analysis\n")
-    cat("perl ZetaSuite_SC.pl -id ./ -od ./ -in Placenta_rmMT.matrix -op placenta\n\n")
-    cat("# Filter cells based on zeta score\n")
-    cat("awk 'BEGIN{FS=OFS=\"\\t\"}NR==FNR{if($2>1259){A[$1]=\"yes\"}}NR>FNR{if(FNR==1 || A[$1]!=\"\"){print}}' \\\n")
-    cat("    placenta_Zeta Placenta_rmMT.matrix > Placenta_rmMT_filter.matrix\n")
   })
   
   # Data preview outputs
@@ -822,31 +741,6 @@ server <- function(input, output, session) {
     }
   )
   
-  output$downloadOriginalFormat <- downloadHandler(
-    filename = function() { "zetaSuite_original_format.zip" },
-    content = function(file) {
-      req(values$zetaData)
-      
-      # Create temporary directory
-      temp_dir <- tempdir()
-      export_dir <- file.path(temp_dir, "zetaSuite_export")
-      if (!dir.exists(export_dir)) {
-        dir.create(export_dir)
-      }
-      
-      # Export files in original ZetaSuite format
-      write.csv(values$zscoreVal, file.path(export_dir, "Zscore_matrix.csv"))
-      write.csv(values$zetaData, file.path(export_dir, "Zeta_scores.csv"))
-      
-      if (!is.null(values$selectedHits)) {
-        write.csv(values$selectedHits, file.path(export_dir, "Selected_hits.csv"), row.names = FALSE)
-      }
-      
-      # Create zip file
-      zip(file, files = list.files(export_dir, full.names = TRUE), flags = "-j")
-    }
-  )
-  
   output$downloadReport <- downloadHandler(
     filename = function() { "zetaSuite_analysis_report.txt" },
     content = function(file) {
@@ -918,7 +812,6 @@ server <- function(input, output, session) {
     }
     
     cat("\nAnalysis ready for download!")
-    cat("\n\nFor additional analysis with original ZetaSuite, use the 'Original ZetaSuite' tab.")
   })
 }
 

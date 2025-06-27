@@ -315,7 +315,7 @@ ui <- dashboardPage(
             br(), br(),
             h4("Citation"),
             p("If you use ZetaSuite in your research, please cite:"),
-            p("Hao, Y., Shao, C., Zhao, G., Fu, X.D. (2021). ZetaSuite: A Computational Method for Analyzing Multi-dimensional High-throughput Data, Reveals Genes with Opposite Roles in Cancer Dependency. Forthcoming"),
+            p("Hao, Y., Zhang, S., Shao, C. et al. ZetaSuite: computational analysis of two-dimensional high-throughput data from multi-target screens and single-cell transcriptomics. Genome Biol 23, 162 (2022). https://doi.org/10.1186/s13059-022-02729-4"),
             br(),
             h4("Contact"),
             p("For questions about the package, contact the maintainer:"),

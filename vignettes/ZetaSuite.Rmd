@@ -39,6 +39,8 @@ ZetaSuite is an R package designed for analyzing multi-dimensional high-throughp
 
 # Installation and Setup
 
+## R Package Installation
+
 ```{r install, eval=FALSE}
 # Install from CRAN
 install.packages("ZetaSuite")
@@ -46,6 +48,31 @@ install.packages("ZetaSuite")
 # Load the package
 library(ZetaSuite)
 ```
+
+## Interactive Shiny Application
+
+ZetaSuite includes an interactive web interface for easy-to-use analysis:
+
+```{r shiny_app, eval=FALSE}
+# Launch the Shiny app
+ZetaSuiteApp()
+
+# Launch without opening browser automatically
+ZetaSuiteApp(launch.browser = FALSE)
+
+# Launch on a specific port
+ZetaSuiteApp(port = 3838)
+```
+
+The Shiny app provides:
+- **Interactive data upload** and visualization
+- **Step-by-step analysis workflow** with progress indicators
+- **Real-time results** and interactive plots
+- **Data export capabilities** for all analysis results
+- **Built-in example dataset** for demonstration
+- **Bug report integration** with GitHub issues
+
+## Original ZetaSuite Installation
 
 # Example Dataset
 

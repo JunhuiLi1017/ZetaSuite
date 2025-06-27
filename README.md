@@ -40,6 +40,28 @@ zeta_scores <- Zeta(zscore_matrix, ec_results[[1]]$ZseqList)
 fdr_results <- FDRcutoff(zeta_scores, negGene, posGene, nonExpGene)
 ```
 
+## Interactive Shiny Application
+
+Launch the interactive web interface for ZetaSuite:
+
+```r
+# Launch the Shiny app
+ZetaSuiteApp()
+
+# Launch without opening browser automatically
+ZetaSuiteApp(launch.browser = FALSE)
+
+# Launch on a specific port
+ZetaSuiteApp(port = 3838)
+```
+
+The Shiny app provides:
+- Interactive data upload and visualization
+- Step-by-step analysis workflow
+- Real-time results and plots
+- Data export capabilities
+- Built-in example dataset
+
 ## Features
 
 - **Quality Control Analysis**: Comprehensive evaluation of experimental design and data quality

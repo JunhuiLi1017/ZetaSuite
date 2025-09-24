@@ -22,8 +22,8 @@ The function performs Z-score normalization as follows:
 \enumerate{
   \item Extracts negative control samples from the input matrix using the identifiers provided in negGene
   \item For each column (readout), calculates the mean and standard deviation using only the negative control samples
-  \item Applies Z-score transformation: \eqn{Z_{ij} = (X_{ij} - \mu_j) / \sigma_j}
-  where \eqn{X_{ij}} is the raw value for gene \eqn{i} in readout \eqn{j}, \eqn{\mu_j} is the mean of negative controls in readout \eqn{j}, and \eqn{\sigma_j} is the standard deviation of negative controls in readout \eqn{j}
+  \item Applies Z-score transformation: \eqn{Z_{ij} = (X_{ij} - \mu_{j}) / \sigma_{j}}
+  where \eqn{X_{ij}} is the raw value for gene \eqn{i} in readout \eqn{j}, \eqn{\mu_{j}} is the mean of negative controls in readout \eqn{j}, and \eqn{\sigma_{j}} is the standard deviation of negative controls in readout \eqn{j}
 }
 
 This normalization allows for comparison across different readouts and identifies genes/siRNAs that show significant deviation from the negative control distribution.

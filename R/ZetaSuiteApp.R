@@ -36,35 +36,37 @@
 #' ZetaSuiteApp(port = 3838)
 #' }
 #'
+#' @importFrom shiny runApp tags h3 p br h4 code a fluidRow fileInput actionButton textOutput plotOutput numericInput checkboxInput downloadButton verbatimTextOutput tabsetPanel tabPanel reactiveValues observeEvent req showNotification renderPlot
+#' @importFrom shinydashboard dashboardPage dashboardHeader dashboardSidebar sidebarMenu menuItem box tabItems tabItem
+#' @importFrom DT datatable renderDataTable dataTableOutput
+#' @importFrom plotly ggplotly
+#' @importFrom shinyjs useShinyjs
 #' @export
 ZetaSuiteApp <- function(launch.browser = TRUE, port = NULL, host = "127.0.0.1") {
   
-  # Check if required packages are installed
+  # Check if required packages are installed (suggested dependencies)
   required_packages <- c("shiny", "shinydashboard", "DT", "plotly", "shinyjs")
   missing_packages <- required_packages[!sapply(required_packages, requireNamespace, quietly = TRUE)]
   
   if (length(missing_packages) > 0) {
-    stop("The following packages are required to run the ZetaSuite Shiny app but are not installed:\n",
-         paste(missing_packages, collapse = ", "), "\n\n",
-         "Please install them using:\n",
-         "install.packages(c(", paste0("'", missing_packages, "'", collapse = ", "), "))")
+    stop(
+      paste0(
+        "The following packages are required to run the ZetaSuite Shiny app but are not installed:\n",
+        paste(missing_packages, collapse = ", "),
+        "\n\nPlease install them using:\n",
+        "install.packages(c(", paste0("'", missing_packages, "'", collapse = ", "), "))"
+      ),
+      call. = FALSE
+    )
   }
   
-  # Load required packages
-  library(shiny)
-  library(shinydashboard)
-  library(DT)
-  library(plotly)
-  library(shinyjs)
-  
-  # Get the path to the Shiny app
+  # Resolve path to the embedded Shiny app
   app_path <- system.file("shiny", package = "ZetaSuite")
-  
-  if (app_path == "") {
-    stop("Shiny app files not found. Please ensure the ZetaSuite package is properly installed.")
+  if (isTRUE(nchar(app_path) == 0L) || app_path == "") {
+    stop("Shiny app files not found. Please ensure the ZetaSuite package is properly installed.", call. = FALSE)
   }
   
-  # Launch the Shiny app
+  # Launch the Shiny app without attaching packages
   shiny::runApp(
     appDir = app_path,
     launch.browser = launch.browser,

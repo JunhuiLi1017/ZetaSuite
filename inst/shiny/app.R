@@ -9,7 +9,12 @@ library(shinyjs)
 
 # UI Definition
 ui <- dashboardPage(
-  dashboardHeader(title = "ZetaSuite Analysis"),
+  dashboardHeader(
+    title = tags$a(href = "https://cran.r-project.org/web/packages/ZetaSuite/index.html", 
+                   "ZetaSuite", 
+                   target = "_blank",
+                   style = "color: white; text-decoration: none;")
+  ),
   
   dashboardSidebar(
     sidebarMenu(
@@ -116,18 +121,18 @@ ui <- dashboardPage(
         ),
         fluidRow(
           box(title = "Score Distribution", width = 6,
-            plotlyOutput("scoreQCPlot")
+            plotOutput("scoreQCPlot")
           ),
           box(title = "t-SNE Plot", width = 6,
-            plotlyOutput("tsnePlot")
+            plotOutput("tsnePlot")
           )
         ),
         fluidRow(
           box(title = "Box Plots", width = 6,
-            plotlyOutput("boxPlot")
+            plotOutput("boxPlot")
           ),
           box(title = "SSMD Distribution", width = 6,
-            plotlyOutput("ssmdPlot")
+            plotOutput("ssmdPlot")
           )
         )
       ),
@@ -162,10 +167,10 @@ ui <- dashboardPage(
         ),
         fluidRow(
           box(title = "Decrease Direction", width = 6,
-            plotlyOutput("ecDecreasePlot")
+            plotOutput("ecDecreasePlot")
           ),
           box(title = "Increase Direction", width = 6,
-            plotlyOutput("ecIncreasePlot")
+            plotOutput("ecIncreasePlot")
           )
         )
       ),
@@ -228,10 +233,10 @@ ui <- dashboardPage(
         ),
         fluidRow(
           box(title = "Zeta Score Distribution by Type", width = 6,
-            plotlyOutput("zetaTypePlot")
+            plotOutput("zetaTypePlot")
           ),
           box(title = "Screen Strength Curves", width = 6,
-            plotlyOutput("ssCutoffPlot")
+            plotOutput("ssCutoffPlot")
           )
         ),
         fluidRow(
@@ -269,7 +274,7 @@ ui <- dashboardPage(
         ),
         fluidRow(
           box(title = "Zeta Score Distribution", width = 12,
-            plotlyOutput("singleCellPlot")
+            plotOutput("singleCellPlot")
           )
         ),
         fluidRow(
@@ -305,6 +310,12 @@ ui <- dashboardPage(
             h4("Package Documentation"),
             p("For detailed documentation and examples, see the package vignette:"),
             code("vignette(\"ZetaSuite\")"),
+            br(),
+            p("Official CRAN package page:"),
+            tags$a(href = "https://cran.r-project.org/web/packages/ZetaSuite/index.html", 
+                   "ZetaSuite on CRAN", 
+                   target = "_blank", 
+                   class = "btn btn-info"),
             br(), br(),
             h4("Bug Reports & Feature Requests"),
             p("If you encounter any bugs or have feature requests, please report them on our GitHub issues page:"),
@@ -380,7 +391,7 @@ server <- function(input, output, session) {
       values$posGene <- posGene
       values$nonExpGene <- nonExpGene
       
-      showNotification("Example data loaded successfully!", type = "success")
+      showNotification("Example data loaded successfully!", type = "message")
     }, error = function(e) {
       showNotification(paste("Error loading example data:", e$message), type = "error")
     })
@@ -399,7 +410,7 @@ server <- function(input, output, session) {
         values$nonExpGene <- read.csv(input$nonExpGene$datapath)
       }
       
-      showNotification("Data loaded successfully!", type = "success")
+      showNotification("Data loaded successfully!", type = "message")
     }, error = function(e) {
       showNotification(paste("Error loading data:", e$message), type = "error")
     })
@@ -411,7 +422,7 @@ server <- function(input, output, session) {
     
     tryCatch({
       values$countMatSC <- read.csv(input$countMatSC$datapath, row.names = 1)
-      showNotification("Single cell data loaded successfully!", type = "success")
+      showNotification("Single cell data loaded successfully!", type = "message")
     }, error = function(e) {
       showNotification(paste("Error loading single cell data:", e$message), type = "error")
     })
@@ -458,7 +469,7 @@ server <- function(input, output, session) {
         values$qcResults <- QC(values$countMat, values$negGene, values$posGene)
       })
       output$qcStatus <- renderText("Quality Control completed successfully!")
-      showNotification("Quality Control completed!", type = "success")
+      showNotification("Quality Control completed!", type = "message")
     }, error = function(e) {
       output$qcStatus <- renderText(paste("Error:", e$message))
       showNotification(paste("Error in Quality Control:", e$message), type = "error")
@@ -474,7 +485,7 @@ server <- function(input, output, session) {
         values$zscoreVal <- Zscore(values$countMat, values$negGene)
       })
       output$zscoreStatus <- renderText("Z-score calculation completed successfully!")
-      showNotification("Z-scores calculated!", type = "success")
+      showNotification("Z-scores calculated!", type = "message")
     }, error = function(e) {
       output$zscoreStatus <- renderText(paste("Error:", e$message))
       showNotification(paste("Error in Z-score calculation:", e$message), type = "error")
@@ -491,7 +502,7 @@ server <- function(input, output, session) {
                                       input$binNum, input$combine)
       })
       output$eventCoverageStatus <- renderText("Event Coverage calculation completed successfully!")
-      showNotification("Event Coverage calculated!", type = "success")
+      showNotification("Event Coverage calculated!", type = "message")
     }, error = function(e) {
       output$eventCoverageStatus <- renderText(paste("Error:", e$message))
       showNotification(paste("Error in Event Coverage calculation:", e$message), type = "error")
@@ -512,7 +523,7 @@ server <- function(input, output, session) {
         }
       })
       output$zetaStatus <- renderText("Zeta Score calculation completed successfully!")
-      showNotification("Zeta Scores calculated!", type = "success")
+      showNotification("Zeta Scores calculated!", type = "message")
     }, error = function(e) {
       output$zetaStatus <- renderText(paste("Error:", e$message))
       showNotification(paste("Error in Zeta Score calculation:", e$message), type = "error")
@@ -528,7 +539,7 @@ server <- function(input, output, session) {
         values$svmData <- SVM(values$ecData)
       })
       output$svmStatus <- renderText("SVM Analysis completed successfully!")
-      showNotification("SVM Analysis completed!", type = "success")
+      showNotification("SVM Analysis completed!", type = "message")
     }, error = function(e) {
       output$svmStatus <- renderText(paste("Error:", e$message))
       showNotification(paste("Error in SVM Analysis:", e$message), type = "error")
@@ -545,7 +556,7 @@ server <- function(input, output, session) {
                                    values$nonExpGene, input$combineFDR)
       })
       output$fdrStatus <- renderText("FDR Cutoff calculation completed successfully!")
-      showNotification("FDR Cutoffs calculated!", type = "success")
+      showNotification("FDR Cutoffs calculated!", type = "message")
     }, error = function(e) {
       output$fdrStatus <- renderText(paste("Error:", e$message))
       showNotification(paste("Error in FDR Cutoff calculation:", e$message), type = "error")
@@ -581,7 +592,7 @@ server <- function(input, output, session) {
           cat("Apparent FDR:", best_threshold$aFDR, "\n")
         })
         
-        showNotification(paste("Selected", length(hits), "hits!"), type = "success")
+        showNotification(paste("Selected", length(hits), "hits!"), type = "message")
       } else {
         output$hitSelectionResults <- renderPrint({
           cat("No thresholds found with Screen Strength >=", input$ssThreshold, "\n")
@@ -604,7 +615,7 @@ server <- function(input, output, session) {
         values$singleCellData <- ZetaSuitSC(values$countMatSC, input$binNumSC, input$filterSC)
       })
       output$singleCellStatus <- renderText("Single Cell QC completed successfully!")
-      showNotification("Single Cell QC completed!", type = "success")
+      showNotification("Single Cell QC completed!", type = "message")
     }, error = function(e) {
       output$singleCellStatus <- renderText(paste("Error:", e$message))
       showNotification(paste("Error in Single Cell QC:", e$message), type = "error")
@@ -612,49 +623,139 @@ server <- function(input, output, session) {
   })
   
   # Plot outputs
-  output$scoreQCPlot <- renderPlotly({
+  output$scoreQCPlot <- renderPlot({
     req(values$qcResults)
-    ggplotly(values$qcResults$score_qc)
+    tryCatch({
+      if (is.null(values$qcResults$score_qc)) {
+        plot(1, 1, type = "n", axes = FALSE, xlab = "", ylab = "")
+        text(1, 1, "No score QC plot available", cex = 1.2)
+      } else {
+        values$qcResults$score_qc
+      }
+    }, error = function(e) {
+      plot(1, 1, type = "n", axes = FALSE, xlab = "", ylab = "")
+      text(1, 1, paste("Error rendering plot:", e$message), cex = 1.2)
+    })
   })
   
-  output$tsnePlot <- renderPlotly({
+  output$tsnePlot <- renderPlot({
     req(values$qcResults)
-    ggplotly(values$qcResults$tSNE_QC)
+    tryCatch({
+      if (is.null(values$qcResults$tSNE_QC)) {
+        plot(1, 1, type = "n", axes = FALSE, xlab = "", ylab = "")
+        text(1, 1, "No t-SNE plot available", cex = 1.2)
+      } else {
+        values$qcResults$tSNE_QC
+      }
+    }, error = function(e) {
+      plot(1, 1, type = "n", axes = FALSE, xlab = "", ylab = "")
+      text(1, 1, paste("Error rendering plot:", e$message), cex = 1.2)
+    })
   })
   
-  output$boxPlot <- renderPlotly({
+  output$boxPlot <- renderPlot({
     req(values$qcResults)
-    ggplotly(values$qcResults$QC_box)
+    tryCatch({
+      if (is.null(values$qcResults$QC_box)) {
+        plot(1, 1, type = "n", axes = FALSE, xlab = "", ylab = "")
+        text(1, 1, "No box plot available", cex = 1.2)
+      } else {
+        values$qcResults$QC_box
+      }
+    }, error = function(e) {
+      plot(1, 1, type = "n", axes = FALSE, xlab = "", ylab = "")
+      text(1, 1, paste("Error rendering plot:", e$message), cex = 1.2)
+    })
   })
   
-  output$ssmdPlot <- renderPlotly({
+  output$ssmdPlot <- renderPlot({
     req(values$qcResults)
-    ggplotly(values$qcResults$QC_SSMD)
+    tryCatch({
+      if (is.null(values$qcResults$QC_SSMD)) {
+        plot(1, 1, type = "n", axes = FALSE, xlab = "", ylab = "")
+        text(1, 1, "No SSMD plot available", cex = 1.2)
+      } else {
+        values$qcResults$QC_SSMD
+      }
+    }, error = function(e) {
+      plot(1, 1, type = "n", axes = FALSE, xlab = "", ylab = "")
+      text(1, 1, paste("Error rendering plot:", e$message), cex = 1.2)
+    })
   })
   
-  output$ecDecreasePlot <- renderPlotly({
+  output$ecDecreasePlot <- renderPlot({
     req(values$ecData)
-    ggplotly(values$ecData[[2]]$EC_jitter_D)
+    tryCatch({
+      if (is.null(values$ecData[[2]]$EC_jitter_D)) {
+        plot(1, 1, type = "n", axes = FALSE, xlab = "", ylab = "")
+        text(1, 1, "No decrease direction plot available", cex = 1.2)
+      } else {
+        values$ecData[[2]]$EC_jitter_D
+      }
+    }, error = function(e) {
+      plot(1, 1, type = "n", axes = FALSE, xlab = "", ylab = "")
+      text(1, 1, paste("Error rendering plot:", e$message), cex = 1.2)
+    })
   })
   
-  output$ecIncreasePlot <- renderPlotly({
+  output$ecIncreasePlot <- renderPlot({
     req(values$ecData)
-    ggplotly(values$ecData[[2]]$EC_jitter_I)
+    tryCatch({
+      if (is.null(values$ecData[[2]]$EC_jitter_I)) {
+        plot(1, 1, type = "n", axes = FALSE, xlab = "", ylab = "")
+        text(1, 1, "No increase direction plot available", cex = 1.2)
+      } else {
+        values$ecData[[2]]$EC_jitter_I
+      }
+    }, error = function(e) {
+      plot(1, 1, type = "n", axes = FALSE, xlab = "", ylab = "")
+      text(1, 1, paste("Error rendering plot:", e$message), cex = 1.2)
+    })
   })
   
-  output$zetaTypePlot <- renderPlotly({
+  output$zetaTypePlot <- renderPlot({
     req(values$fdrData)
-    ggplotly(values$fdrData[[2]]$Zeta_type)
+    tryCatch({
+      if (is.null(values$fdrData[[2]]$Zeta_type)) {
+        plot(1, 1, type = "n", axes = FALSE, xlab = "", ylab = "")
+        text(1, 1, "No zeta type plot available", cex = 1.2)
+      } else {
+        values$fdrData[[2]]$Zeta_type
+      }
+    }, error = function(e) {
+      plot(1, 1, type = "n", axes = FALSE, xlab = "", ylab = "")
+      text(1, 1, paste("Error rendering plot:", e$message), cex = 1.2)
+    })
   })
   
-  output$ssCutoffPlot <- renderPlotly({
+  output$ssCutoffPlot <- renderPlot({
     req(values$fdrData)
-    ggplotly(values$fdrData[[2]]$SS_cutOff)
+    tryCatch({
+      if (is.null(values$fdrData[[2]]$SS_cutOff)) {
+        plot(1, 1, type = "n", axes = FALSE, xlab = "", ylab = "")
+        text(1, 1, "No screen strength plot available", cex = 1.2)
+      } else {
+        values$fdrData[[2]]$SS_cutOff
+      }
+    }, error = function(e) {
+      plot(1, 1, type = "n", axes = FALSE, xlab = "", ylab = "")
+      text(1, 1, paste("Error rendering plot:", e$message), cex = 1.2)
+    })
   })
   
-  output$singleCellPlot <- renderPlotly({
+  output$singleCellPlot <- renderPlot({
     req(values$singleCellData)
-    ggplotly(values$singleCellData[[2]])
+    tryCatch({
+      if (is.null(values$singleCellData[[2]])) {
+        plot(1, 1, type = "n", axes = FALSE, xlab = "", ylab = "")
+        text(1, 1, "No single cell plot available", cex = 1.2)
+      } else {
+        values$singleCellData[[2]]
+      }
+    }, error = function(e) {
+      plot(1, 1, type = "n", axes = FALSE, xlab = "", ylab = "")
+      text(1, 1, paste("Error rendering plot:", e$message), cex = 1.2)
+    })
   })
   
   # Table outputs

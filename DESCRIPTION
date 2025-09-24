@@ -34,11 +34,11 @@ Suggests: knitr, rmarkdown
 VignetteBuilder: knitr
 Author: Yajing Hao [aut] (<https://orcid.org/0000-0003-1384-4176>),
   Shuyang Zhang [ctb] (<https://orcid.org/0000-0002-8428-1828>),
-  Junhui Li [cre],
+  Junhui Li [cre] (<https://orcid.org/0000-0003-3973-1700>),
   Guofeng Zhao [ctb],
   Xiang-Dong Fu [cph, fnd] (<https://orcid.org/0000-0001-5499-8732>)
 NeedsCompilation: no
-Packaged: 2025-06-27 01:59:24 UTC; junhuili
+Packaged: 2025-09-24 01:59:24 UTC; junhuili
 Repository: CRAN
-Date/Publication: 2025-06-27 19:40:02 UTC
+Date/Publication: 2025-09-24 19:40:02 UTC
 Encoding: UTF-8

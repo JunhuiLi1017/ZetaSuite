@@ -19,11 +19,11 @@
 #'   \item Creates jitter plots to visualize score distributions across readouts
 #'   \item Performs t-SNE dimensionality reduction to assess global sample separation
 #'   \item Generates boxplots to compare score distributions between control groups
-#'   \item Calculates SSMD scores for each readout: SSMD = (μ_positive - μ_negative) / √(σ²_positive + σ²_negative)
-#'   \item Reports the percentage of readouts with |SSMD| ≥ 2 (considered high quality)
+#'   \item Calculates SSMD scores for each readout: \eqn{\mathrm{SSMD} = (\mu_{pos} - \mu_{neg}) / \sqrt{\sigma_{pos}^2 + \sigma_{neg}^2}}
+#'   \item Reports the percentage of readouts with \eqn{|\mathrm{SSMD}| \ge 2} (considered high quality)
 #' }
 #' 
-#' SSMD scores ≥ 2 indicate good separation between positive and negative controls, suggesting high-quality readouts.
+#' SSMD scores \eqn{\ge 2} indicate good separation between positive and negative controls, suggesting high-quality readouts.
 #'
 #' @references
 #' Laurens van der Maaten & Geoffrey Hinton: Visualizing Data using t-SNE. Journal of Machine Learning Research 2008, 9(2008):2579-2605.
@@ -51,7 +51,7 @@
 #' @name QC
 #' @export QC
 
-QC <- function (countMat, negGene, posGene) {
+QC <- function (countMat, negGene, posGene){
     countMatNeg <- countMat[rownames(countMat) %in% negGene[,1], ]
     countMatNeg$Type <- rep("Negative", nrow(countMatNeg))
     countMatPos <- countMat[rownames(countMat) %in% posGene[,1], ]
@@ -92,5 +92,5 @@ QC <- function (countMat, negGene, posGene) {
     resultList["tSNE_QC"] <- list(p_tSNE_QC)
     resultList["QC_box"] <- list(p_QC_box)
     resultList["QC_SSMD"] <- list(p_QC_SSMD)
-	return(resultList)
+    return(resultList)
 }

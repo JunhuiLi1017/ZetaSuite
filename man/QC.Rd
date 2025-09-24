@@ -29,11 +29,11 @@ The function performs the following quality control analyses:
   \item Creates jitter plots to visualize score distributions across readouts
   \item Performs t-SNE dimensionality reduction to assess global sample separation
   \item Generates boxplots to compare score distributions between control groups
-  \item Calculates SSMD scores for each readout: SSMD = (μ_positive - μ_negative) / √(σ²_positive + σ²_negative)
-  \item Reports the percentage of readouts with |SSMD| ≥ 2 (considered high quality)
+  \item Calculates SSMD scores for each readout: \eqn{\mathrm{SSMD} = (\mu_{pos} - \mu_{neg}) / \sqrt{\sigma_{pos}^2 + \sigma_{neg}^2}}
+  \item Reports the percentage of readouts with \eqn{|\mathrm{SSMD}| \ge 2} (considered high quality)
 }
 
-SSMD scores ≥ 2 indicate good separation between positive and negative controls, suggesting high-quality readouts.
+SSMD scores \eqn{\ge 2} indicate good separation between positive and negative controls, suggesting high-quality readouts.
 }
 \examples{
 data(countMat)
